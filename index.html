@@ -67,6 +67,37 @@
   }
   .header-badge b{ display:block; font-size:20px; margin-top:2px;}
 
+  .month-switch{
+    background:var(--bg-card);
+    border-radius:16px;
+    padding:14px 20px;
+    margin-bottom:var(--gap);
+    box-shadow:0 2px 8px rgba(15,37,69,.08);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .month-switch label{ font-weight:700; font-size:14px; color:var(--text-primary); white-space:nowrap;}
+  .month-switch select{
+    padding:10px 14px;
+    border:1px solid #e5e8ee;
+    border-radius:12px;
+    font-size:14px;
+    background:#fbfcfe;
+    color:var(--text-primary);
+    min-width:260px;
+  }
+  .month-banner{
+    background:#fef3e0;
+    color:#92650f;
+    border:1px solid #f6dfae;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+  }
+
   .filters{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -196,6 +227,7 @@
     .kpi-row{ grid-template-columns:repeat(2,1fr);}
     .chart-row{ grid-template-columns:1fr;}
     .filters{ flex-direction:column; align-items:stretch;}
+    .month-switch{ flex-direction:column; align-items:stretch;}
   }
 </style>
 </head>
@@ -212,6 +244,12 @@
       <b id="asof-date">—</b>
     </div>
   </header>
+
+  <div class="month-switch">
+    <label for="f-month">📅 عرض بيانات شهر:</label>
+    <select id="f-month"></select>
+    <span class="month-banner" id="month-banner" style="display:none;"></span>
+  </div>
 
   <div class="filters">
     <div class="filter-group">
@@ -318,54 +356,64 @@
 </div>
 
 <script>
-const DATA = [
-  {id:"ID-05", name:"هوية اليوم الوطني 3D [الأخبار]", department:"الهوية", assignee:"عمرو الجزيري", priority:"عادي", due:"2026-09-01", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-16", name:"أحداث الأسبوع (الأربعاء 2 سبتمبر)", department:"الإبداع", assignee:"مشاري العرفج", priority:"عادي", due:"2026-09-02", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-17", name:"أحداث الأسبوع (الأربعاء 9 سبتمبر)", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"عادي", due:"2026-09-09", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-13", name:"تصحيح ألوان فيلم نورة", department:"الإبداع", assignee:"طارق الرشود", priority:"متوسط", due:"2026-09-10", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-01", name:"موشن جرافيك اليوم الوطني (4-5 مواد)", department:"الهوية", assignee:"محمد عبدالحميد", priority:"عادي", due:"2026-09-12", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-04", name:"تحديث هوية وقوالب Vizrt [الأخبار]", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-12", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-11", name:"هوية استوديو زيارة ولي العهد إلى مصر", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-10", name:"استلام ستينغ زيارة ولي العهد [تغطية خاصة]", department:"الهوية", assignee:"عمرو الجزيري", priority:"عاجل جدًا", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-08", name:"هوية فيلم الملك سلمان (التعديل الأخير) [الأخبار]", department:"الهوية", assignee:"عمرو الجزيري", priority:"متوسط", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-14", name:"تجهيز وتسليم CG اليوم الوطني لسامر", department:"الهوية", assignee:"مهند الزهراني", priority:"عاجل جدًا", due:"2026-09-15", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-02", name:"إنتاج برومو الموانئ البحرية [الأخبار]", department:"الإبداع", assignee:"سلطان البقمي", priority:"عادي", due:"2026-09-15", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم (إعادة تصميم)"},
-  {id:"ID-07", name:"موشن وجرافيك برنامج هنا الرياض", department:"الهوية", assignee:"محمد فوزي", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"إنجاز يومي دوري منتظم"},
-  {id:"CR-03", name:"تحديث بروموهات اليوم الوطني (6-9 مواد)", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-06", name:"أعمال اليوم الوطني 2D/3D [مودة - الأخبار] ⭐", department:"الهوية", assignee:"حسام قاسم", priority:"عاجل جدًا", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم الانتهاء في 22 سبتمبر"},
-  {id:"CR-14", name:"تصحيح ألوان فيلم عمارة الرياض", department:"الإبداع", assignee:"طارق الرشود", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-18", name:"أحداث الأسبوع (الأربعاء 16 سبتمبر)", department:"الإبداع", assignee:"سلطان البقمي", priority:"عادي", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-13", name:"هوية الفيز لليوم الوطني", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-12", name:"هوية الاستوديو Virtual لليوم الوطني", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم قبل الموعد بـ 3 أيام"},
-  {id:"ID-15", name:"تحديث هوية برنامج أدوات [البرامج]", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم قبل الموعد بـ 3 أيام"},
-  {id:"ID-17", name:"هوية استوديو خليجي 26", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-01", name:"إنتاج برومو وثائقي فيلم الرؤية [الأخبار]", department:"الإبداع", assignee:"مشاري العرفج", priority:"عادي", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-04", name:"تسليم مقترحات موسيقية - الأخبار - أبو حزام", department:"الإبداع", assignee:"عادل الغامدي", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-05", name:"إنتاج برومو عمارة الرياض", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-06", name:"إنتاج برومو نورة", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-07", name:"برومو التعليم", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد (طلب الأربعاء، تسليم الخميس)"},
-  {id:"CR-08", name:"برومو الصناعات السعودية لليوم الوطني", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد (طلب الثلاثاء، تسليم الخميس)"},
-  {id:"ID-16", name:"جرافيك فيلم عسير [الأخبار - علي دكام]", department:"الهوية", assignee:"محمد فوزي", priority:"متوسط", due:"2026-09-19", status:"قيد التنفيذ", completion:0, deliveryStatus:"نُقلت إلى محمد فوزي بعد تأخر لدى حسام قاسم - قيد التنفيذ"},
-  {id:"ID-18", name:"ستينج خليجي 26", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-20", name:"تصميم موشنين معلومات عامة لليوم الوطني", department:"الهوية", assignee:"محمد عبدالحميد", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-15", name:"إنتاج برومو الدبلوماسية", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-09", name:"برومو اليوم الوطني (العرضة والألعاب الشعبية)", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-09", name:"تقرير 3D قصة الرجل المسن (اليوم الوطني)", department:"الهوية", assignee:"عمرو الجزيري", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم الأربعاء (تأخير 1 يوم)"},
-  {id:"ID-19", name:"جرافيك الموانئ", department:"الهوية", assignee:"مهند الزهراني", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-10", name:"فاصل القوات لليوم الوطني", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-11", name:"فاصل عام اليوم الوطني", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"CR-12", name:"إنتاج برومو مجمل القول (الحرب الاقتصادية)", department:"الإبداع", assignee:"مشاري العرفج", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-03", name:"تحديث قالب البورصة العقارية [طلب أبو حزام ⭐]", department:"الهوية", assignee:"مهند الزهراني", priority:"عاجل جدًا", due:"2026-09-22", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم (بعد تأخير عن الموعد المحدد)"},
-  {id:"ID-21", name:"تصميم مقولات ملكية (الملك عبدالعزيز، الملك سلمان، محمد بن سلمان)", department:"الهوية", assignee:"محمد عبدالحميد", priority:"متوسط", due:"2026-09-22", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-22", name:"إنشاء CG خاص ببطولة خليجي 27", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-24", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
-  {id:"ID-02", name:"تحديث هوية برنامج الراصد [البرامج]", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-25", status:"قيد التنفيذ", completion:90, deliveryStatus:"قيد التنفيذ (متبقي 1 يوم، التسليم الجمعة)"},
-  {id:"ID-23", name:"إضافة 4 قوالب لبرنامج أدوات", department:"الهوية", assignee:"سامر الشافعي", priority:"متوسط", due:"2026-09-24", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم متأخرًا (طلب الخميس، تسليم الاثنين - تأخير 4 أيام)"},
-  {id:"ID-24", name:"تصميم فيديو وول يوم المعلم", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-30", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (طلب الخميس، التسليم غدًا)"},
+// ===== أرشيف الأشهر المنتهية (مهام مكتملة ومُغلقة من أشهر سابقة — للاستعراض فقط) =====
+const ARCHIVES = {
+  "2026-09": {
+    label: "سبتمبر 2026",
+    tasks: [
+      {id:"ID-05", name:"هوية اليوم الوطني 3D [الأخبار]", department:"الهوية", assignee:"عمرو الجزيري", priority:"عادي", due:"2026-09-01", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-16", name:"أحداث الأسبوع (الأربعاء 2 سبتمبر)", department:"الإبداع", assignee:"مشاري العرفج", priority:"عادي", due:"2026-09-02", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-17", name:"أحداث الأسبوع (الأربعاء 9 سبتمبر)", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"عادي", due:"2026-09-09", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-13", name:"تصحيح ألوان فيلم نورة", department:"الإبداع", assignee:"طارق الرشود", priority:"متوسط", due:"2026-09-10", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-01", name:"موشن جرافيك اليوم الوطني (4-5 مواد)", department:"الهوية", assignee:"محمد عبدالحميد", priority:"عادي", due:"2026-09-12", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-04", name:"تحديث هوية وقوالب Vizrt [الأخبار]", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-12", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-11", name:"هوية استوديو زيارة ولي العهد إلى مصر", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-10", name:"استلام ستينغ زيارة ولي العهد [تغطية خاصة]", department:"الهوية", assignee:"عمرو الجزيري", priority:"عاجل جدًا", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-08", name:"هوية فيلم الملك سلمان (التعديل الأخير) [الأخبار]", department:"الهوية", assignee:"عمرو الجزيري", priority:"متوسط", due:"2026-09-13", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-14", name:"تجهيز وتسليم CG اليوم الوطني لسامر", department:"الهوية", assignee:"مهند الزهراني", priority:"عاجل جدًا", due:"2026-09-15", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-02", name:"إنتاج برومو الموانئ البحرية [الأخبار]", department:"الإبداع", assignee:"سلطان البقمي", priority:"عادي", due:"2026-09-15", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم (إعادة تصميم)"},
+      {id:"ID-07", name:"موشن وجرافيك برنامج هنا الرياض", department:"الهوية", assignee:"محمد فوزي", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"إنجاز يومي دوري منتظم"},
+      {id:"CR-03", name:"تحديث بروموهات اليوم الوطني (6-9 مواد)", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-06", name:"أعمال اليوم الوطني 2D/3D [مودة - الأخبار] ⭐", department:"الهوية", assignee:"حسام قاسم", priority:"عاجل جدًا", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم الانتهاء في 22 سبتمبر"},
+      {id:"CR-14", name:"تصحيح ألوان فيلم عمارة الرياض", department:"الإبداع", assignee:"طارق الرشود", priority:"متوسط", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-18", name:"أحداث الأسبوع (الأربعاء 16 سبتمبر)", department:"الإبداع", assignee:"سلطان البقمي", priority:"عادي", due:"2026-09-16", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-13", name:"هوية الفيز لليوم الوطني", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-12", name:"هوية الاستوديو Virtual لليوم الوطني", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم قبل الموعد بـ 3 أيام"},
+      {id:"ID-15", name:"تحديث هوية برنامج أدوات [البرامج]", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم قبل الموعد بـ 3 أيام"},
+      {id:"ID-17", name:"هوية استوديو خليجي 26", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-01", name:"إنتاج برومو وثائقي فيلم الرؤية [الأخبار]", department:"الإبداع", assignee:"مشاري العرفج", priority:"عادي", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-04", name:"تسليم مقترحات موسيقية - الأخبار - أبو حزام", department:"الإبداع", assignee:"عادل الغامدي", priority:"عاجل جدًا", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-05", name:"إنتاج برومو عمارة الرياض", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-06", name:"إنتاج برومو نورة", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-07", name:"برومو التعليم", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد (طلب الأربعاء، تسليم الخميس)"},
+      {id:"CR-08", name:"برومو الصناعات السعودية لليوم الوطني", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-17", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد (طلب الثلاثاء، تسليم الخميس)"},
+      {id:"ID-18", name:"ستينج خليجي 26", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-20", name:"تصميم موشنين معلومات عامة لليوم الوطني", department:"الهوية", assignee:"محمد عبدالحميد", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-15", name:"إنتاج برومو الدبلوماسية", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-20", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-09", name:"برومو اليوم الوطني (العرضة والألعاب الشعبية)", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-09", name:"تقرير 3D قصة الرجل المسن (اليوم الوطني)", department:"الهوية", assignee:"عمرو الجزيري", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم الأربعاء (تأخير 1 يوم)"},
+      {id:"ID-19", name:"جرافيك الموانئ", department:"الهوية", assignee:"مهند الزهراني", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-10", name:"فاصل القوات لليوم الوطني", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-11", name:"فاصل عام اليوم الوطني", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"CR-12", name:"إنتاج برومو مجمل القول (الحرب الاقتصادية)", department:"الإبداع", assignee:"مشاري العرفج", priority:"متوسط", due:"2026-09-21", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-03", name:"تحديث قالب البورصة العقارية [طلب أبو حزام ⭐]", department:"الهوية", assignee:"مهند الزهراني", priority:"عاجل جدًا", due:"2026-09-22", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم (بعد تأخير عن الموعد المحدد)"},
+      {id:"ID-21", name:"تصميم مقولات ملكية (الملك عبدالعزيز، الملك سلمان، محمد بن سلمان)", department:"الهوية", assignee:"محمد عبدالحميد", priority:"متوسط", due:"2026-09-22", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-22", name:"إنشاء CG خاص ببطولة خليجي 27", department:"الهوية", assignee:"سامر الشافعي", priority:"عاجل جدًا", due:"2026-09-24", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+      {id:"ID-23", name:"إضافة 4 قوالب لبرنامج أدوات", department:"الهوية", assignee:"سامر الشافعي", priority:"متوسط", due:"2026-09-24", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم متأخرًا (طلب الخميس، تسليم الاثنين - تأخير 4 أيام)"},
+      {id:"CR-20", name:"تصوير برومو أدوات في مكتب الملك عبدالعزيز", department:"الإبداع", assignee:"سعد أبو تيلي", priority:"متوسط", due:"2026-09-30", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
+    ]
+  }
+};
+
+// ===== المهام النشطة: مهام هذا الشهر + المهام المرحّلة من الأشهر السابقة التي لم تُنجز بعد =====
+const ACTIVE_DATA = [
+  {id:"ID-16", name:"جرافيك فيلم عسير [الأخبار - علي دكام]", department:"الهوية", assignee:"محمد فوزي", priority:"متوسط", due:"2026-09-19", status:"قيد التنفيذ", completion:0, deliveryStatus:"نُقلت إلى محمد فوزي بعد تأخر لدى حسام قاسم - قيد التنفيذ (مرحّلة من سبتمبر)"},
+  {id:"ID-02", name:"تحديث هوية برنامج الراصد [البرامج]", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"2026-09-25", status:"قيد التنفيذ", completion:90, deliveryStatus:"قيد التنفيذ (متبقي 1 يوم، التسليم الجمعة) (مرحّلة من سبتمبر)"},
+  {id:"ID-24", name:"تصميم فيديو وول يوم المعلم", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-09-30", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (طلب الخميس، التسليم غدًا) (مرحّلة من سبتمبر)"},
   {id:"CR-19", name:"تغطية اقتصادية (مع العضياني)", department:"الإبداع", assignee:"الفريق", priority:"متوسط", due:"2026-10-08", status:"قيد التنفيذ", completion:0, deliveryStatus:"بانتظار التفاصيل - سيتم الاستفسار عن المهمة"},
-  {id:"CR-20", name:"تصوير برومو أدوات في مكتب الملك عبدالعزيز", department:"الإبداع", assignee:"سعد أبو تيلي", priority:"متوسط", due:"2026-09-30", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في الموعد المحدد"},
   {id:"CR-21", name:"تسليم برومو عين الخامسة", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"2026-10-01", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (التسليم يوم الخميس)"},
   {id:"CR-22", name:"التحضير لبرومو مسافة", department:"الإبداع", assignee:"الفريق", priority:"متوسط", due:"2026-10-20", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (تسليم خلال 15 يوم عمل ابتداءً من 30 سبتمبر)"},
-  {id:"CR-23", name:"برومو مجمل القول", department:"الإبداع", assignee:"مشاري العرفج", priority:"عاجل جدًا", due:"2026-09-30", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (الطلب من يومين، التسليم غدًا)"},
+  {id:"CR-23", name:"برومو مجمل القول", department:"الإبداع", assignee:"مشاري العرفج", priority:"عاجل جدًا", due:"2026-09-30", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (الطلب من يومين، التسليم غدًا) (مرحّلة من سبتمبر)"},
   {id:"CR-24", name:"فاصل عام (2)", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"", status:"قيد التنفيذ", completion:0, deliveryStatus:"لم يُحدد تاريخ تسليم بعد"},
   {id:"ID-25", name:"تصميم فيديو وول \"فجر اليمن\" [طلب عاجل - أبو حزام]", department:"الهوية", assignee:"مهند الزهراني", priority:"عاجل جدًا", due:"2026-10-05", status:"تم الإنجاز", completion:100, deliveryStatus:"تم التسليم في نفس اليوم (طلب عاجل من أبو حزام)"},
   {id:"ID-26", name:"بوينتات برنامج الحرب [مع وليد الكليب]", department:"الهوية", assignee:"محمد الشهراني", priority:"عاجل جدًا", due:"2026-10-05", status:"تم الإنجاز", completion:100, deliveryStatus:"ابتدأت وانتهت في نفس اليوم (عاجل مع وليد الكليب)"},
@@ -445,19 +493,62 @@ function departmentBadgeClass(d){
 }
 
 class Dashboard {
-  constructor(data){
-    this.rawData = data;
-    this.filteredData = data.slice();
+  constructor(initialData){
     this.charts = {};
     this.sortKey = null;
     this.sortDir = 1;
-    this.init();
+    this.populateMonthSelect();
+    this.attachEvents();
+    this.setData(initialData);
   }
 
-  init(){
+  // يبني قائمة اختيار الشهر: الشهر الحالي (النشط) ثم كل الأشهر المؤرشفة، الأحدث أولاً
+  populateMonthSelect(){
+    const sel = document.querySelector('#f-month');
+    sel.innerHTML = '';
+    const cur = document.createElement('option');
+    cur.value = 'current';
+    cur.textContent = `✅ الشهر الحالي — ${MONTHS_AR[todayMidnight().getMonth()]} ${todayMidnight().getFullYear()} (نشط + مرحّل)`;
+    sel.appendChild(cur);
+    Object.keys(ARCHIVES).sort((a,b) => b.localeCompare(a)).forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = `📦 أرشيف ${ARCHIVES[key].label}`;
+      sel.appendChild(opt);
+    });
+    sel.value = 'current';
+    sel.addEventListener('change', () => this.onMonthChange(sel.value));
+  }
+
+  onMonthChange(value){
+    const banner = document.querySelector('#month-banner');
+    if(value === 'current'){
+      banner.style.display = 'none';
+      this.setData(ACTIVE_DATA);
+    } else {
+      const arc = ARCHIVES[value];
+      banner.style.display = 'inline-block';
+      banner.textContent = `📦 عرض أرشيف شهر ${arc.label} — للاستعراض فقط (${arc.tasks.length} مهمة مكتملة ومُغلقة من ذلك الشهر)`;
+      this.setData(arc.tasks);
+    }
+  }
+
+  // يستبدل مصدر البيانات المعروض (الشهر الحالي أو أرشيف شهر سابق) ويعيد بناء الفلاتر والجدول والرسوم من جديد
+  setData(data){
+    this.rawData = data;
+    this.filteredData = data.slice();
+    this.sortKey = null;
+    this.sortDir = 1;
+    this.resetFilterInputs();
     this.populateFilterOptions();
-    this.attachEvents();
     this.applyFilters();
+  }
+
+  resetFilterInputs(){
+    ['#f-department','#f-assignee','#f-status','#f-priority','#f-timeline'].forEach(sel => {
+      document.querySelector(sel).innerHTML = '<option value="">الكل</option>';
+    });
+    document.querySelector('#f-search').value = '';
   }
 
   populateFilterOptions(){
@@ -638,7 +729,7 @@ class Dashboard {
   }
 }
 
-new Dashboard(DATA);
+new Dashboard(ACTIVE_DATA);
 </script>
 </body>
 </html>
