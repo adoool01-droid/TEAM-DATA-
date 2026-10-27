@@ -202,6 +202,17 @@
   .data-table tbody td{ padding:9px 12px; border-bottom:1px solid #f0f1f4; vertical-align:middle;}
   .data-table tbody tr:hover{ background:#f8f9fb; }
 
+  .notes-section{ background:var(--bg-card); border-radius:18px; padding:20px 22px; box-shadow:0 2px 8px rgba(15,37,69,.07); margin-bottom:var(--gap);}
+  .notes-section h3{ font-size:14px; font-weight:700; margin:0 0 14px 0;}
+  .notes-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px;}
+  .note-card{ border:1px solid #e6eaf0; border-right:4px solid var(--blue); border-radius:12px; padding:12px 14px; background:#fbfcfe;}
+  .note-card.active{ border-right-color:var(--amber);}
+  .note-card.ended{ border-right-color:var(--gray); opacity:.75;}
+  .note-head{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;}
+  .note-person{ font-weight:700; font-size:14px; color:var(--text-primary);}
+  .note-type{ font-size:12px; color:var(--text-secondary); margin-bottom:6px;}
+  .note-dates{ font-size:12px; color:var(--text-primary); line-height:1.7;}
+  .note-text{ font-size:12px; color:var(--text-secondary); margin-top:6px;}
   .badge{ padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; display:inline-block; white-space:nowrap;}
   .badge-done{ background:#e7faf3; color:#0d9668;}
   .badge-progress{ background:#eaf1ff; color:#2563EB;}
@@ -329,6 +340,11 @@
     </div>
   </section>
 
+  <section class="notes-section" id="notes-section">
+    <h3>📝 ملاحظات وإجازات الفريق</h3>
+    <div class="notes-grid" id="notes-grid"></div>
+  </section>
+
   <section class="table-section">
     <h3>جدول المهام والمتابعة التنفيذية <span id="table-count" style="color:#6b7686;font-weight:400;"></span></h3>
     <table class="data-table" id="data-table">
@@ -351,7 +367,7 @@
   </section>
 
   <footer class="dashboard-footer" id="dashboard-footer">
-    آخر تعديل على بيانات المهام: 8 أكتوبر 2026 — إدارة الإبداع والهوية | قناة الإخبارية
+    آخر تعديل على بيانات المهام: 27 أكتوبر 2026 — إدارة الإبداع والهوية | قناة الإخبارية
   </footer>
 </div>
 
@@ -429,6 +445,15 @@ const ACTIVE_DATA = [
   {id:"CR-25", name:"تسليم برومو أدوات مع تعديل الأوقات", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ - تعديل الأوقات (المواعيد ستُحدد قريبًا)"},
   {id:"CR-26", name:"فاصل القوات", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"2026-10-16", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (التسليم بعد غد)"},
   {id:"CR-27", name:"أحداث الأسبوع (الأربعاء 14 أكتوبر)", department:"الإبداع", assignee:"سلطان البقمي", priority:"عادي", due:"2026-10-14", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل"},
+  {id:"ID-36", name:"تعديل موسيقى \"الصورة تتكلم\" مع ترانزيشن", department:"الهوية", assignee:"محمد الشهراني", priority:"متوسط", due:"", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل"},
+  {id:"ID-37", name:"تعديل الخريطة بكتابة كود في الفيز [مع سامر الشافعي]", department:"الهوية", assignee:"مهند الزهراني", priority:"متوسط", due:"", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (جاري العمل)"},
+  {id:"ID-38", name:"تعديل جرافكس فيلم عسير", department:"الهوية", assignee:"محمد فوزي", priority:"متوسط", due:"", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل (تم التسليم 25 أكتوبر)"},
+  {id:"ID-39", name:"استلام حصر أعمال حسام قاسم", department:"الهوية", assignee:"عادل الغامدي", priority:"متوسط", due:"", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل (تم التسليم 25 أكتوبر)"},
+  {id:"CR-28", name:"برومو يوم عمل", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (جاري العمل)"},
+  {id:"CR-29", name:"برومو مسافة وبرومو أدوات", department:"الإبداع", assignee:"مشاري العرفج", priority:"متوسط", due:"", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل (تم التسليم)"},
+  {id:"CR-30", name:"تعديل برومو مسافة (تقصير نسخة 45 ث)", department:"الإبداع", assignee:"سلطان البقمي", priority:"متوسط", due:"", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل"},
+  {id:"CR-31", name:"أحداث الأسبوع (الأربعاء 21 أكتوبر)", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"عادي", due:"2026-10-21", status:"تم الإنجاز", completion:100, deliveryStatus:"مكتمل"},
+  {id:"CR-32", name:"تصوير برومو مسافة والتنسيق مع الإدارة", department:"الإبداع", assignee:"مؤيد الحزيم", priority:"متوسط", due:"", status:"قيد التنفيذ", completion:0, deliveryStatus:"قيد التنفيذ (جاري العمل)"},
 ];
 
 const COLORS = { green:'#10B981', red:'#DC2626', blue:'#2563EB', amber:'#F59E0B', gray:'#64748B', purple:'#7C3AED', teal:'#0EA5A5', pink:'#EC4899', indigo:'#6366F1', orange:'#F97316' };
@@ -731,6 +756,31 @@ class Dashboard {
   }
 }
 
+
+// ===== ملاحظات وإجازات الفريق (تُحسب حالتها تلقائيًا من تاريخ اليوم) =====
+const TEAM_NOTES = [
+  {person:"عبدالله الثويني", type:"إجازة", from:"2026-10-25", to:"2026-10-29", back:"2026-11-01", note:"إجازة لمدة 5 أيام"},
+  {person:"فهد الحارثي", type:"تمديد إجازة", from:"2026-10-25", to:"2026-10-31", back:"2026-11-01", note:"تمديد الإجازة لمدة أسبوع، والمباشرة الأسبوع القادم"},
+  {person:"علي آل مقدر", type:"إجازة", from:"2026-11-01", to:"2026-11-05", back:"2026-11-08", note:"إجازة لمدة 5 أيام"},
+];
+function renderTeamNotes(){
+  const grid = document.querySelector('#notes-grid'); if(!grid) return;
+  const fmt = d => new Date(d+'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{weekday:'long',day:'numeric',month:'long'});
+  const t = todayMidnight();
+  grid.innerHTML = TEAM_NOTES.map(n => {
+    const f = new Date(n.from+'T00:00:00'), e = new Date(n.to+'T00:00:00');
+    let cls='', badge='<span class="badge badge-progress">قادمة</span>';
+    if(t >= f && t <= e){ cls='active'; badge='<span class="badge badge-soon">جارية الآن</span>'; }
+    else if(t > e){ cls='ended'; badge='<span class="badge badge-plan">انتهت</span>'; }
+    return `<div class="note-card ${cls}">
+      <div class="note-head"><span class="note-person">${n.person}</span>${badge}</div>
+      <div class="note-type">${n.type}</div>
+      <div class="note-dates">من: ${fmt(n.from)}<br>إلى: ${fmt(n.to)}<br>المباشرة: ${fmt(n.back)}</div>
+      <div class="note-text">${n.note}</div>
+    </div>`;
+  }).join('');
+}
+renderTeamNotes();
 new Dashboard(ACTIVE_DATA);
 </script>
 </body>
